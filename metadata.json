@@ -1,0 +1,5 @@
+{
+  "name": "Interactive Luo Pan - Feng Shui Compass",
+  "description": "A high-fidelity interactive digital Luo Pan (24 Mountains Compass) and Feng Shui relationship visualizer using React and SVG, integrated with Gemini AI for conceptual explanations.",
+  "requestFramePermissions": []
+}
