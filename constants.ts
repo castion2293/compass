@@ -46,3 +46,90 @@ export const COLORS = {
   bg: '#F8F5F0', // Rice Paper
   text: '#1a1a1a',
 };
+
+// --- 周易後天八卦易理衍生天地精氣八應驗法則 ---
+
+// 1. 定義八卦納甲群組
+export const BA_GUA_GROUPS: Record<string, string[]> = {
+  "乾甲": ["乾", "甲"],
+  "坤乙": ["坤", "乙"],
+  "申子辰癸": ["申", "子", "辰", "癸"],
+  "寅午戌壬": ["寅", "午", "戌", "壬"],
+  "亥卯未庚": ["亥", "卯", "未", "庚"],
+  "巽辛": ["巽", "辛"],
+  "艮丙": ["艮", "丙"],
+  "巳酉丑丁": ["巳", "酉", "丑", "丁"]
+};
+
+// 2. 定義八大卦氣的互動法則矩陣 (8x8)
+// Key: 立向群組 (Row), Value: { Key: 來水群組 (Col), Value: 星曜 }
+const BA_GUA_INTERACTIONS: Record<string, Record<string, string>> = {
+  "乾甲": {
+    "乾甲": "輔弼", "坤乙": "巨門", "申子辰癸": "貪狼", "寅午戌壬": "武曲", 
+    "亥卯未庚": "祿存", "巽辛": "廉貞", "艮丙": "破軍", "巳酉丑丁": "文曲"
+  },
+  "坤乙": {
+    "乾甲": "巨門", "坤乙": "輔弼", "申子辰癸": "武曲", "寅午戌壬": "貪狼", 
+    "亥卯未庚": "廉貞", "巽辛": "祿存", "艮丙": "文曲", "巳酉丑丁": "破軍"
+  },
+  "申子辰癸": {
+    "乾甲": "貪狼", "坤乙": "武曲", "申子辰癸": "輔弼", "寅午戌壬": "巨門", 
+    "亥卯未庚": "破軍", "巽辛": "文曲", "艮丙": "祿存", "巳酉丑丁": "廉貞"
+  },
+  "寅午戌壬": {
+    "乾甲": "武曲", "坤乙": "貪狼", "申子辰癸": "巨門", "寅午戌壬": "輔弼", 
+    "亥卯未庚": "文曲", "巽辛": "破軍", "艮丙": "廉貞", "巳酉丑丁": "祿存"
+  },
+  "亥卯未庚": {
+    "乾甲": "祿存", "坤乙": "廉貞", "申子辰癸": "破軍", "寅午戌壬": "文曲", 
+    "亥卯未庚": "輔弼", "巽辛": "巨門", "艮丙": "貪狼", "巳酉丑丁": "武曲"
+  },
+  "巽辛": {
+    "乾甲": "廉貞", "坤乙": "祿存", "申子辰癸": "文曲", "寅午戌壬": "破軍", 
+    "亥卯未庚": "巨門", "巽辛": "輔弼", "艮丙": "武曲", "巳酉丑丁": "貪狼"
+  },
+  "艮丙": {
+    "乾甲": "破軍", "坤乙": "文曲", "申子辰癸": "祿存", "寅午戌壬": "廉貞", 
+    "亥卯未庚": "貪狼", "巽辛": "武曲", "艮丙": "輔弼", "巳酉丑丁": "巨門"
+  },
+  "巳酉丑丁": {
+    "乾甲": "文曲", "坤乙": "破軍", "申子辰癸": "廉貞", "寅午戌壬": "祿存", 
+    "亥卯未庚": "武曲", "巽辛": "貪狼", "艮丙": "巨門", "巳酉丑丁": "輔弼"
+  }
+};
+
+// 3. 自動展開為 24x24 完整對照表
+// 結構範例: { "乾": { "乾": "輔弼", "甲": "輔弼", "坤": "巨門" ... }, "子": { ... } }
+export const BA_GUA_YING_YAN_LOOKUP: Record<string, Record<string, string>> = (() => {
+  const lookup: Record<string, Record<string, string>> = {};
+  const mountainToGroup: Record<string, string> = {};
+
+  // 建立「山 -> 群組」的反向索引
+  Object.entries(BA_GUA_GROUPS).forEach(([groupName, mountains]) => {
+    mountains.forEach(m => mountainToGroup[m] = groupName);
+  });
+
+  // 雙重迴圈生成每一對山向的關係
+  MOUNTAINS.forEach(m1 => { // 外層 Key: 立向 (Sitting/Facing)
+    const labelLiXiang = m1.label;
+    const groupLiXiang = mountainToGroup[labelLiXiang];
+    
+    if (!groupLiXiang) return; // 理論上不會發生
+
+    lookup[labelLiXiang] = {};
+
+    MOUNTAINS.forEach(m2 => { // 內層 Key: 氣應/納水 (Incoming Water)
+      const labelQiYing = m2.label;
+      const groupQiYing = mountainToGroup[labelQiYing];
+
+      if (groupQiYing && BA_GUA_INTERACTIONS[groupLiXiang]) {
+        const star = BA_GUA_INTERACTIONS[groupLiXiang][groupQiYing];
+        if (star) {
+          lookup[labelLiXiang][labelQiYing] = star;
+        }
+      }
+    });
+  });
+
+  return lookup;
+})();
